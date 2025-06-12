@@ -163,7 +163,6 @@ public class GestorTareas {
             }
         } while (opcion != 0);
     }
-
     public static void main(String[] args) throws IOException {
         GestorTareas gestor = new GestorTareas();
         gestor.menu();

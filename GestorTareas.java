@@ -29,13 +29,15 @@ class Tarea implements Comparable<Tarea> {
             case 3 -> "Baja";
             default -> "Desconocida";
         };
-        return "[" + (completada ? "✔" : "✘") + "] " + nombre + " (Prioridad: " + prioridadTexto + ", Categoría: " + categoria + ")";
+        return "[" + (completada ? "✔" : "✘") + "] " + nombre + " (Prioridad: " + prioridadTexto + 
+               ", Categoría: " + categoria + ", Descripción: " + descripcion + 
+               " [" + descripcion.length() + " caracteres])";
     }
 }
 
 public class GestorTareas {
-    private PriorityQueue<Tarea> colaPrioridad = new PriorityQueue<>(); 
-    private List<Tarea> listaTareas = new ArrayList<>();  
+    private PriorityQueue<Tarea> colaPrioridad = new PriorityQueue<>();
+    private List<Tarea> listaTareas = new ArrayList<>();
     private Stack<String> historial = new Stack<>();
     private final Scanner scanner = new Scanner(System.in);
 
@@ -44,16 +46,16 @@ public class GestorTareas {
         String nombre = scanner.nextLine();
         System.out.print("Descripción: ");
         String descripcion = scanner.nextLine();
+        System.out.println("(La descripción tiene " + descripcion.length() + " caracteres)");
         System.out.print("Prioridad (1 = Alta, 2 = Media, 3 = Baja): ");
         int prioridad = Integer.parseInt(scanner.nextLine());
         System.out.print("Categoría: ");
-        
         String categoria = scanner.nextLine();
 
         Tarea tarea = new Tarea(nombre, descripcion, prioridad, categoria);
         listaTareas.add(tarea);
         colaPrioridad.offer(tarea);
-        historial.push("Agregada tarea: " + nombre);
+        historial.push("Agregada tarea: " + nombre + " (Descripción: " + descripcion.length() + " caracteres)");
 
         System.out.println();
         mostrarTareas();
@@ -65,7 +67,7 @@ public class GestorTareas {
         for (Tarea t : listaTareas) {
             if (t.nombre.equalsIgnoreCase(nombre)) {
                 t.completada = true;
-                historial.push("Completada tarea: " + nombre);
+                historial.push("Completada tarea: " + nombre + " (Descripción: " + t.descripcion.length() + " caracteres)");
                 System.out.println("Tarea marcada como completada.\n");
                 mostrarTareas();
                 return;
@@ -117,9 +119,14 @@ public class GestorTareas {
 
     public void exportarResumen() throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("resumen.csv"))) {
-            writer.write("Nombre,Descripción,Prioridad,Categoría,Estado\n");
+            writer.write("Nombre,Descripción,Caracteres,Prioridad,Categoría,Estado\n");
             for (Tarea t : listaTareas) {
-                writer.write(t.nombre + "," + t.descripcion + "," + t.prioridad + "," + t.categoria + "," + (t.completada ? "Completada" : "Pendiente") + "\n");
+                writer.write(t.nombre + "," +
+                             t.descripcion.replace(",", " ") + "," +
+                             t.descripcion.length() + "," +
+                             t.prioridad + "," +
+                             t.categoria + "," +
+                             (t.completada ? "Completada" : "Pendiente") + "\n");
             }
         }
         System.out.println("Resumen exportado a resumen.csv");

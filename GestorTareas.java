@@ -29,8 +29,8 @@ class Tarea implements Comparable<Tarea> {
             case 3 -> "Baja";
             default -> "Desconocida";
         };
-        return "[" + (completada ? "✔" : "✘") + "] " + nombre + " (Prioridad: " + prioridadTexto + 
-               ", Categoría: " + categoria + ", Descripción: " + descripcion + 
+        return "[" + (completada ? "✔" : "✘") + "] " + nombre + " (Prioridad: " + prioridadTexto +
+               ", Categoría: " + categoria + ", Descripción: " + descripcion +
                " [" + descripcion.length() + " caracteres])";
     }
 }
@@ -48,7 +48,17 @@ public class GestorTareas {
         String descripcion = scanner.nextLine();
         System.out.println("(La descripción tiene " + descripcion.length() + " caracteres)");
         System.out.print("Prioridad (1 = Alta, 2 = Media, 3 = Baja): ");
-        int prioridad = Integer.parseInt(scanner.nextLine());
+        int prioridad;
+        try {
+            prioridad = Integer.parseInt(scanner.nextLine());
+            if (prioridad < 1 || prioridad > 3) {
+                System.out.println("Prioridad inválida, se asignará prioridad 3 (Baja) por defecto.");
+                prioridad = 3;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Entrada inválida, se asignará prioridad 3 (Baja) por defecto.");
+            prioridad = 3;
+        }
         System.out.print("Categoría: ");
         String categoria = scanner.nextLine();
 
@@ -66,6 +76,10 @@ public class GestorTareas {
         String nombre = scanner.nextLine();
         for (Tarea t : listaTareas) {
             if (t.nombre.equalsIgnoreCase(nombre)) {
+                if (t.completada) {
+                    System.out.println("La tarea ya estaba marcada como completada.\n");
+                    return;
+                }
                 t.completada = true;
                 historial.push("Completada tarea: " + nombre + " (Descripción: " + t.descripcion.length() + " caracteres)");
                 System.out.println("Tarea marcada como completada.\n");
@@ -121,12 +135,13 @@ public class GestorTareas {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("resumen.csv"))) {
             writer.write("Nombre,Descripción,Caracteres,Prioridad,Categoría,Estado\n");
             for (Tarea t : listaTareas) {
-                writer.write(t.nombre + "," +
-                             t.descripcion.replace(",", " ") + "," +
-                             t.descripcion.length() + "," +
-                             t.prioridad + "," +
-                             t.categoria + "," +
-                             (t.completada ? "Completada" : "Pendiente") + "\n");
+                writer.write(String.format("\"%s\",\"%s\",%d,%d,\"%s\",%s\n",
+                    t.nombre,
+                    t.descripcion.replace("\"", "\"\""), // Escapar comillas dobles
+                    t.descripcion.length(),
+                    t.prioridad,
+                    t.categoria,
+                    (t.completada ? "Completada" : "Pendiente")));
             }
         }
         System.out.println("Resumen exportado a resumen.csv");
@@ -135,7 +150,9 @@ public class GestorTareas {
     public void menu() throws IOException {
         int opcion;
         do {
-            System.out.println("\n--- Menú ---");
+            System.out.println("\n===========================");
+            System.out.println("         MENÚ PRINCIPAL    ");
+            System.out.println("===========================");
             System.out.println("1. Agregar tarea");
             System.out.println("2. Completar tarea");
             System.out.println("3. Eliminar tarea");
@@ -143,6 +160,7 @@ public class GestorTareas {
             System.out.println("5. Mostrar historial");
             System.out.println("6. Exportar resumen");
             System.out.println("0. Salir");
+            System.out.println("===========================");
             System.out.print("Elige una opción: ");
             String entrada = scanner.nextLine();
             try {
@@ -163,8 +181,10 @@ public class GestorTareas {
             }
         } while (opcion != 0);
     }
+
     public static void main(String[] args) throws IOException {
         GestorTareas gestor = new GestorTareas();
         gestor.menu();
     }
 }
+

@@ -34,8 +34,8 @@ class Tarea implements Comparable<Tarea> {
 }
 
 public class GestorTareas {
-    private PriorityQueue<Tarea> colaPrioridad = new PriorityQueue<>();
-    private List<Tarea> listaTareas = new ArrayList<>();
+    private PriorityQueue<Tarea> colaPrioridad = new PriorityQueue<>(); 
+    private List<Tarea> listaTareas = new ArrayList<>();  
     private Stack<String> historial = new Stack<>();
     private final Scanner scanner = new Scanner(System.in);
 

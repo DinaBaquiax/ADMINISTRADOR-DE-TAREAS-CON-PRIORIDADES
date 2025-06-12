@@ -47,6 +47,7 @@ public class GestorTareas {
         System.out.print("Prioridad (1 = Alta, 2 = Media, 3 = Baja): ");
         int prioridad = Integer.parseInt(scanner.nextLine());
         System.out.print("Categoría: ");
+        
         String categoria = scanner.nextLine();
 
         Tarea tarea = new Tarea(nombre, descripcion, prioridad, categoria);

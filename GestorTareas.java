@@ -27,17 +27,20 @@ public class GestorTareas {
     public static void main(String[] args) throws IOException {
         int opcion;
         do {
-            System.out.println("\n----- MENÚ -----");
-            System.out.println("1. Agregar tarea");
-            System.out.println("2. Mostrar tareas");
-            System.out.println("3. Ordenar tareas por prioridad");
-            System.out.println("4. Marcar tarea como completada");
-            System.out.println("5. Eliminar tarea");
-            System.out.println("6. Editar tarea");
-            System.out.println("7. Exportar resumen CSV");
-            System.out.println("8. Exportar resumen TXT (tabla)");
-            System.out.println("9. Ver historial de acciones");
-            System.out.println("0. Salir");
+            System.out.println("\n+--------------------------+");
+            System.out.println("|     GESTIÓN DE TAREAS    |");
+            System.out.println("+--------------------------+");
+            System.out.println("| 1. Agregar tarea         |");
+            System.out.println("| 2. Mostrar tareas        |");
+            System.out.println("| 3. Ordenar tareas        |");
+            System.out.println("| 4. Marcar como completada|");
+            System.out.println("| 5. Eliminar tarea        |");
+            System.out.println("| 6. Editar tarea          |");
+            System.out.println("| 7. Exportar resumen CSV  |");
+            System.out.println("| 8. Exportar resumen TXT  |");
+            System.out.println("| 9. Ver historial         |");
+            System.out.println("| 0. Salir                 |");
+            System.out.println("+--------------------------+");
             System.out.print("Seleccione una opción: ");
             opcion = sc.nextInt();
             sc.nextLine();
@@ -227,3 +230,4 @@ public class GestorTareas {
         return sb.toString();
     }
 }
+

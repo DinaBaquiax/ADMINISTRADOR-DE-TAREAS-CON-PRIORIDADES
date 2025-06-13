@@ -1,6 +1,6 @@
 +--------------+----------------------+------------+-----------+------------+------------+
 | Nombre       | Descripción          | Caracteres | Prioridad | Categoría  | Estado     |
 +--------------+----------------------+------------+-----------+------------+------------+
-| Estructuras  | Rama original        | 13         | Baja      | Escuela    | Completada |
-| 2do Proyecto | Modificar el proy... | 21         | Media     | Universidad | Pendiente  |
+| 3ro Proyecto | Avanzar              | 7          | Media     | Universidad | Completada |
+| Estructuras  | Hacer la tarea       | 14         | Alta      | Universidad | Pendiente  |
 +--------------+----------------------+------------+-----------+------------+------------+

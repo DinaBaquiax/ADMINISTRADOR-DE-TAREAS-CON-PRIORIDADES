@@ -1,190 +1,229 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
-import java.io.*;
-
-class Tarea implements Comparable<Tarea> {
-    String nombre;
-    String descripcion;
-    int prioridad; // 1 = Alta, 2 = Media, 3 = Baja
-    String categoria;
-    boolean completada;
-
-    public Tarea(String nombre, String descripcion, int prioridad, String categoria) {
-        this.nombre = nombre;
-        this.descripcion = descripcion;
-        this.prioridad = prioridad;
-        this.categoria = categoria;
-        this.completada = false;
-    }
-
-    @Override
-    public int compareTo(Tarea otra) {
-        return Integer.compare(this.prioridad, otra.prioridad);
-    }
-
-    @Override
-    public String toString() {
-        String prioridadTexto = switch (prioridad) {
-            case 1 -> "Alta (Urgente)";
-            case 2 -> "Media";
-            case 3 -> "Baja";
-            default -> "Desconocida";
-        };
-        return "[" + (completada ? "✔" : "✘") + "] " + nombre + " (Prioridad: " + prioridadTexto +
-               ", Categoría: " + categoria + ", Descripción: " + descripcion +
-               " [" + descripcion.length() + " caracteres])";
-    }
-}
 
 public class GestorTareas {
-    private PriorityQueue<Tarea> colaPrioridad = new PriorityQueue<>();
-    private List<Tarea> listaTareas = new ArrayList<>();
-    private Stack<String> historial = new Stack<>();
-    private final Scanner scanner = new Scanner(System.in);
+    static class Tarea {
+        String nombre;
+        String descripcion;
+        int prioridad; // 1: Alta, 2: Media, 3: Baja
+        String categoria;
+        boolean completada;
 
-    public void agregarTarea() {
-        System.out.print("Nombre de la tarea: ");
-        String nombre = scanner.nextLine();
+        public Tarea(String nombre, String descripcion, int prioridad, String categoria, boolean completada) {
+            this.nombre = nombre;
+            this.descripcion = descripcion;
+            this.prioridad = prioridad;
+            this.categoria = categoria;
+            this.completada = completada;
+        }
+    }
+
+    static ArrayList<Tarea> listaTareas = new ArrayList<>();
+    static Stack<String> historialAcciones = new Stack<>();
+    static Scanner sc = new Scanner(System.in);
+
+    public static void main(String[] args) throws IOException {
+        int opcion;
+        do {
+            System.out.println("\n----- MENÚ -----");
+            System.out.println("1. Agregar tarea");
+            System.out.println("2. Mostrar tareas");
+            System.out.println("3. Ordenar tareas por prioridad");
+            System.out.println("4. Marcar tarea como completada");
+            System.out.println("5. Eliminar tarea");
+            System.out.println("6. Editar tarea");
+            System.out.println("7. Exportar resumen CSV");
+            System.out.println("8. Exportar resumen TXT (tabla)");
+            System.out.println("9. Ver historial de acciones");
+            System.out.println("0. Salir");
+            System.out.print("Seleccione una opción: ");
+            opcion = sc.nextInt();
+            sc.nextLine();
+
+            switch (opcion) {
+                case 1 -> agregarTarea();
+                case 2 -> mostrarTareas();
+                case 3 -> ordenarTareasPorPrioridad();
+                case 4 -> marcarCompletada();
+                case 5 -> eliminarTarea();
+                case 6 -> editarTarea();
+                case 7 -> exportarResumenCSV();
+                case 8 -> exportarResumenTexto();
+                case 9 -> verHistorial();
+                case 0 -> System.out.println("¡Hasta luego!");
+                default -> System.out.println("Opción inválida.");
+            }
+        } while (opcion != 0);
+    }
+
+    public static void agregarTarea() {
+        System.out.print("Nombre: ");
+        String nombre = sc.nextLine();
         System.out.print("Descripción: ");
-        String descripcion = scanner.nextLine();
-        System.out.println("(La descripción tiene " + descripcion.length() + " caracteres)");
-        System.out.print("Prioridad (1 = Alta, 2 = Media, 3 = Baja): ");
-        int prioridad;
-        try {
-            prioridad = Integer.parseInt(scanner.nextLine());
-            if (prioridad < 1 || prioridad > 3) {
-                System.out.println("Prioridad inválida, se asignará prioridad 3 (Baja) por defecto.");
-                prioridad = 3;
-            }
-        } catch (NumberFormatException e) {
-            System.out.println("Entrada inválida, se asignará prioridad 3 (Baja) por defecto.");
-            prioridad = 3;
-        }
+        String descripcion = sc.nextLine();
+
+        System.out.println("(" + descripcion.length() + " caracteres)");
+        System.out.println("Compactación de frecuencia: " + compactarFrecuencia(descripcion));
+
+        System.out.print("Prioridad (1=Alta, 2=Media, 3=Baja): ");
+        int prioridad = sc.nextInt();
+        sc.nextLine();
         System.out.print("Categoría: ");
-        String categoria = scanner.nextLine();
+        String categoria = sc.nextLine();
 
-        Tarea tarea = new Tarea(nombre, descripcion, prioridad, categoria);
-        listaTareas.add(tarea);
-        colaPrioridad.offer(tarea);
-        historial.push("Agregada tarea: " + nombre + " (Descripción: " + descripcion.length() + " caracteres)");
-
-        System.out.println();
-        mostrarTareas();
+        listaTareas.add(new Tarea(nombre, descripcion, prioridad, categoria, false));
+        historialAcciones.push("Tarea agregada: " + nombre);
+        System.out.println("Tarea agregada.");
     }
 
-    public void completarTarea() {
-        System.out.print("Nombre de la tarea a completar: ");
-        String nombre = scanner.nextLine();
+    public static void mostrarTareas() {
+        if (listaTareas.isEmpty()) {
+            System.out.println("No hay tareas.");
+            return;
+        }
+
+        int i = 1;
         for (Tarea t : listaTareas) {
-            if (t.nombre.equalsIgnoreCase(nombre)) {
-                if (t.completada) {
-                    System.out.println("La tarea ya estaba marcada como completada.\n");
-                    return;
-                }
-                t.completada = true;
-                historial.push("Completada tarea: " + nombre + " (Descripción: " + t.descripcion.length() + " caracteres)");
-                System.out.println("Tarea marcada como completada.\n");
-                mostrarTareas();
-                return;
-            }
+            System.out.printf("%d. %s [%d caracteres] - %s - %s - %s\n",
+                i++, t.nombre,
+                t.descripcion.length(),
+                prioridadTexto(t.prioridad),
+                t.categoria,
+                t.completada ? "Completada" : "Pendiente");
         }
-        System.out.println("Tarea no encontrada.");
     }
 
-    public void eliminarTarea() {
-        System.out.print("Nombre de la tarea a eliminar: ");
-        String nombre = scanner.nextLine();
-        boolean eliminada = listaTareas.removeIf(t -> t.nombre.equalsIgnoreCase(nombre));
-        colaPrioridad.removeIf(t -> t.nombre.equalsIgnoreCase(nombre));
-        if (eliminada) {
-            historial.push("Eliminada tarea: " + nombre);
-            System.out.println("Tarea eliminada.\n");
-            mostrarTareas();
+    public static void ordenarTareasPorPrioridad() {
+        listaTareas.sort(Comparator.comparingInt(t -> t.prioridad));
+        System.out.println("Tareas ordenadas por prioridad (Alta a Baja).");
+    }
+
+    public static void marcarCompletada() {
+        mostrarTareas();
+        System.out.print("Número de tarea a completar: ");
+        int index = sc.nextInt() - 1;
+        if (index >= 0 && index < listaTareas.size()) {
+            listaTareas.get(index).completada = true;
+            historialAcciones.push("Tarea completada: " + listaTareas.get(index).nombre);
+            System.out.println("Tarea marcada como completada.");
         } else {
-            System.out.println("Tarea no encontrada.");
+            System.out.println("Índice inválido.");
         }
     }
 
-    public void mostrarTareas() {
-        System.out.println("--- Tareas Pendientes Ordenadas por Prioridad ---");
-        PriorityQueue<Tarea> copia = new PriorityQueue<>(colaPrioridad);
-        boolean hayPendientes = false;
-        while (!copia.isEmpty()) {
-            Tarea t = copia.poll();
-            if (!t.completada) {
-                System.out.println(t);
-                hayPendientes = true;
-            }
-        }
-        if (!hayPendientes) {
-            System.out.println("(No hay tareas pendientes)");
-        }
-    }
-
-    public void mostrarHistorial() {
-        System.out.println("--- Historial de Acciones ---");
-        if (historial.isEmpty()) {
-            System.out.println("(Historial vacío)");
+    public static void eliminarTarea() {
+        mostrarTareas();
+        System.out.print("Número de tarea a eliminar: ");
+        int index = sc.nextInt() - 1;
+        if (index >= 0 && index < listaTareas.size()) {
+            historialAcciones.push("Tarea eliminada: " + listaTareas.get(index).nombre);
+            listaTareas.remove(index);
+            System.out.println("Tarea eliminada.");
         } else {
-            for (String accion : historial) {
-                System.out.println(accion);
-            }
+            System.out.println("Índice inválido.");
         }
     }
 
-    public void exportarResumen() throws IOException {
+    public static void editarTarea() {
+        mostrarTareas();
+        System.out.print("Número de tarea a editar: ");
+        int index = sc.nextInt() - 1;
+        sc.nextLine();
+        if (index >= 0 && index < listaTareas.size()) {
+            Tarea t = listaTareas.get(index);
+            System.out.print("Nuevo nombre (" + t.nombre + "): ");
+            t.nombre = sc.nextLine();
+            System.out.print("Nueva descripción: ");
+            t.descripcion = sc.nextLine();
+
+            System.out.println("Compactación de frecuencia: " + compactarFrecuencia(t.descripcion));
+
+            System.out.print("Nueva prioridad (1=Alta, 2=Media, 3=Baja): ");
+            t.prioridad = sc.nextInt();
+            sc.nextLine();
+            System.out.print("Nueva categoría: ");
+            t.categoria = sc.nextLine();
+
+            historialAcciones.push("Tarea editada: " + t.nombre);
+            System.out.println("Tarea editada correctamente.");
+        } else {
+            System.out.println("Índice inválido.");
+        }
+    }
+
+    public static void exportarResumenCSV() throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("resumen.csv"))) {
             writer.write("Nombre,Descripción,Caracteres,Prioridad,Categoría,Estado\n");
             for (Tarea t : listaTareas) {
-                writer.write(String.format("\"%s\",\"%s\",%d,%d,\"%s\",%s\n",
-                    t.nombre,
-                    t.descripcion.replace("\"", "\"\""), // Escapar comillas dobles
-                    t.descripcion.length(),
-                    t.prioridad,
-                    t.categoria,
-                    (t.completada ? "Completada" : "Pendiente")));
+                String estado = t.completada ? "Completada" : "Pendiente";
+                String prioridadStr = prioridadTexto(t.prioridad);
+                writer.write(String.format("\"%s\",\"%s\",%d,%s,%s,%s\n",
+                        t.nombre, t.descripcion, t.descripcion.length(),
+                        prioridadStr, t.categoria, estado));
             }
         }
         System.out.println("Resumen exportado a resumen.csv");
     }
 
-    public void menu() throws IOException {
-        int opcion;
-        do {
-            System.out.println("\n===========================");
-            System.out.println("         MENÚ PRINCIPAL    ");
-            System.out.println("===========================");
-            System.out.println("1. Agregar tarea");
-            System.out.println("2. Completar tarea");
-            System.out.println("3. Eliminar tarea");
-            System.out.println("4. Mostrar tareas");
-            System.out.println("5. Mostrar historial");
-            System.out.println("6. Exportar resumen");
-            System.out.println("0. Salir");
-            System.out.println("===========================");
-            System.out.print("Elige una opción: ");
-            String entrada = scanner.nextLine();
-            try {
-                opcion = Integer.parseInt(entrada);
-            } catch (NumberFormatException e) {
-                opcion = -1;
-            }
+    public static void exportarResumenTexto() throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("resumen.txt"))) {
+            String formatoFila = "| %-12s | %-20s | %-10s | %-9s | %-10s | %-10s |\n";
+            String separador = "+--------------+----------------------+------------+-----------+------------+------------+\n";
 
-            switch (opcion) {
-                case 1 -> agregarTarea();
-                case 2 -> completarTarea();
-                case 3 -> eliminarTarea();
-                case 4 -> mostrarTareas();
-                case 5 -> mostrarHistorial();
-                case 6 -> exportarResumen();
-                case 0 -> System.out.println("Saliendo...");
-                default -> System.out.println("Opción no válida");
+            writer.write(separador);
+            writer.write(String.format(formatoFila, "Nombre", "Descripción", "Caracteres", "Prioridad", "Categoría", "Estado"));
+            writer.write(separador);
+            for (Tarea t : listaTareas) {
+                String prioridadTexto = prioridadTexto(t.prioridad);
+                writer.write(String.format(
+                    formatoFila,
+                    t.nombre,
+                    t.descripcion.length() > 20 ? t.descripcion.substring(0, 17) + "..." : t.descripcion,
+                    t.descripcion.length(),
+                    prioridadTexto,
+                    t.categoria,
+                    t.completada ? "Completada" : "Pendiente"
+                ));
             }
-        } while (opcion != 0);
+            writer.write(separador);
+        }
+        System.out.println("Resumen exportado a resumen.txt");
     }
 
-    public static void main(String[] args) throws IOException {
-        GestorTareas gestor = new GestorTareas();
-        gestor.menu();
+    public static void verHistorial() {
+        if (historialAcciones.isEmpty()) {
+            System.out.println("No hay acciones registradas.");
+            return;
+        }
+
+        System.out.println("\nHistorial de acciones:");
+        for (String accion : historialAcciones) {
+            System.out.println("- " + accion);
+        }
+    }
+
+    public static String prioridadTexto(int prioridad) {
+        return switch (prioridad) {
+            case 1 -> "Alta";
+            case 2 -> "Media";
+            case 3 -> "Baja";
+            default -> "N/A";
+        };
+    }
+
+    public static String compactarFrecuencia(String texto) {
+        Map<Character, Integer> contador = new TreeMap<>();
+        for (char c : texto.toCharArray()) {
+            if (c != ' ') { // Ignorar espacios en la compactación
+                contador.put(c, contador.getOrDefault(c, 0) + 1);
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<Character, Integer> e : contador.entrySet()) {
+            sb.append(e.getKey()).append(e.getValue());
+        }
+        return sb.toString();
     }
 }
-

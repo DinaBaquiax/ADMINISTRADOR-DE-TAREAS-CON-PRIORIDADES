@@ -1,5 +1,7 @@
 +--------------+----------------------+------------+-----------+------------+------------+
 | Nombre       | Descripción          | Caracteres | Prioridad | Categoría  | Estado     |
 +--------------+----------------------+------------+-----------+------------+------------+
-| Dina         | Ya me cans�          | 11         | Alta      | personal   | Pendiente  |
+| Proyecto en grupos | Hacer el proyecto    | 17         | Baja      | Universidad | Pendiente  |
+| Segundo Proyecto  | Avanzar el proyecto  | 19         | Media     | Universidad | Pendiente  |
+| Estructuras de datos | Trabajo grupal       | 14         | Alta      | Universidad | Pendiente  |
 +--------------+----------------------+------------+-----------+------------+------------+
